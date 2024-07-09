@@ -1,0 +1,1 @@
+* Connect to postgresql`psql "postgres://postgres:postgres@localhost:5432/blogator"`
