@@ -6,4 +6,4 @@ RETURNING *;
 -- name: GetUserByAPIKey :one
 SELECT *
 FROM users
-WHERE apikey == ($1);
+WHERE apikey = ($1);

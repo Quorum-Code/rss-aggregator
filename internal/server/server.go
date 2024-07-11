@@ -43,6 +43,7 @@ func StartServer(svrcfg ServerConfig) {
 	mux.HandleFunc("GET /v1/err", apicfg.GetErr)
 
 	mux.HandleFunc("POST /v1/users", apicfg.PostUsers)
+	mux.HandleFunc("GET /v1/users", apicfg.GetUserByAPIKey)
 
 	// Start server
 	server.ListenAndServe()

@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/Quorum-Code/rss-aggregator/internal/auth"
 	"github.com/Quorum-Code/rss-aggregator/internal/database"
 )
 
@@ -45,5 +46,24 @@ func (cfg *ApiConfig) PostUsers(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// Respond
+	respondWithJSON(resp, http.StatusOK, user)
+}
+
+func (cfg *ApiConfig) GetUserByAPIKey(resp http.ResponseWriter, req *http.Request) {
+	// Get API key in request
+	apikey, err := auth.GetAPIKey(req.Header)
+	if err != nil {
+		respondWithError(resp, http.StatusBadRequest, err)
+		return
+	}
+
+	// Get Users by key
+	user, err := cfg.DB.GetUserByAPIKey(req.Context(), apikey)
+	if err != nil {
+		respondWithError(resp, http.StatusInternalServerError, err)
+		return
+	}
+
+	// Return User
 	respondWithJSON(resp, http.StatusOK, user)
 }
