@@ -46,6 +46,7 @@ func StartServer(svrcfg ServerConfig) {
 	mux.HandleFunc("GET /v1/users", apicfg.MiddlewareAuth(apicfg.GetUserByAPIKey))
 
 	mux.HandleFunc("POST /v1/feeds", apicfg.MiddlewareAuth(apicfg.PostFeed))
+	mux.HandleFunc("GET /v1/feeds", apicfg.GetFeeds)
 
 	// Start server
 	server.ListenAndServe()
