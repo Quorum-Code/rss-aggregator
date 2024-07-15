@@ -12,3 +12,7 @@ WHERE user_id = ($1);
 SELECT *
 FROM feeds
 WHERE id = ($1);
+
+-- name: GetFeeds :many
+SELECT id, name, url
+FROM feeds;
