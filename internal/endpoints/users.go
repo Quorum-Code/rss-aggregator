@@ -1,7 +1,6 @@
 package endpoints
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/Quorum-Code/rss-aggregator/internal/auth"
 	"github.com/Quorum-Code/rss-aggregator/internal/database"
 )
 
@@ -39,7 +37,7 @@ func (cfg *ApiConfig) PostUsers(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// Create user query
-	user, err := cfg.DB.CreateUser(context.TODO(), params)
+	user, err := cfg.DB.CreateUser(req.Context(), params)
 	if err != nil {
 		respondWithError(resp, http.StatusInternalServerError, err)
 		return
@@ -49,21 +47,7 @@ func (cfg *ApiConfig) PostUsers(resp http.ResponseWriter, req *http.Request) {
 	respondWithJSON(resp, http.StatusOK, user)
 }
 
-func (cfg *ApiConfig) GetUserByAPIKey(resp http.ResponseWriter, req *http.Request) {
-	// Get API key in request
-	apikey, err := auth.GetAPIKey(req.Header)
-	if err != nil {
-		respondWithError(resp, http.StatusBadRequest, err)
-		return
-	}
-
-	// Get Users by key
-	user, err := cfg.DB.GetUserByAPIKey(req.Context(), apikey)
-	if err != nil {
-		respondWithError(resp, http.StatusInternalServerError, err)
-		return
-	}
-
+func (cfg *ApiConfig) GetUserByAPIKey(resp http.ResponseWriter, req *http.Request, user database.User) {
 	// Return User
 	respondWithJSON(resp, http.StatusOK, user)
 }
