@@ -55,6 +55,8 @@ func StartServer(svrcfg ServerConfig) {
 	mux.HandleFunc("POST /v1/feed_follows", apicfg.MiddlewareAuth(apicfg.PostFeedFollow))
 	mux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apicfg.MiddlewareAuth(apicfg.DeleteFeedFollow))
 
+	mux.HandleFunc("GET /v1/refresh_feeds", apicfg.RefreshFetches)
+
 	// Start server
 	server.ListenAndServe()
 }

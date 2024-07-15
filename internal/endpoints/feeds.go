@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -61,4 +62,54 @@ func (cfg *ApiConfig) PostFeed(resp http.ResponseWriter, req *http.Request, user
 	}
 	r := response{Feed: feed, FeedFollow: follow}
 	respondWithJSON(resp, http.StatusOK, r)
+}
+
+func (cfg *ApiConfig) RefreshFetches(resp http.ResponseWriter, req *http.Request) {
+	feeds := cfg.getNextFeedsToFetch(req)
+
+	respondWithJSON(resp, http.StatusOK, feeds)
+}
+
+type Feed struct {
+	ID            uuid.UUID  `json:"id"`
+	Name          string     `json:"name"`
+	Url           string     `json:"url"`
+	UserID        uuid.UUID  `json:"user_id"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	LastFetchedAt *time.Time `json:"last_fetched_at"`
+}
+
+func DatabaseFeedToFeed(feed database.Feed) Feed {
+	var lastfetchedat *time.Time
+	if feed.LastFetchedAt.Valid {
+		lastfetchedat = &feed.LastFetchedAt.Time
+	}
+
+	return Feed{
+		ID:            feed.ID,
+		Name:          feed.Name,
+		Url:           feed.Url,
+		UserID:        feed.UserID,
+		CreatedAt:     feed.CreatedAt,
+		UpdatedAt:     feed.UpdatedAt,
+		LastFetchedAt: lastfetchedat,
+	}
+}
+
+func (cfg *ApiConfig) getNextFeedsToFetch(req *http.Request) []database.Feed {
+	feeds, err := cfg.DB.GetFeedsWithNullFetched(req.Context())
+	if err == nil {
+		return feeds
+	} else {
+		fmt.Println(err.Error())
+	}
+
+	feeds, err = cfg.DB.GetFeedsWithOldFetched(req.Context())
+	if err == nil {
+		return feeds
+	}
+
+	fmt.Println(err.Error())
+	return nil
 }

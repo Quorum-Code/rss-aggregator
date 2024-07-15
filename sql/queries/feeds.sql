@@ -1,5 +1,5 @@
 -- name: CreateFeed :one
-INSERT INTO feeds (id, created_at, updated_at, name, url, user_id)
+INSERT INTO feeds (id, name, url, user_id, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
@@ -14,5 +14,20 @@ FROM feeds
 WHERE id = ($1);
 
 -- name: GetFeeds :many
-SELECT id, name, url
+SELECT id, name, url, created_at, updated_at, last_fetched_at
 FROM feeds;
+
+-- name: GetFeedsWithNullFetched :many
+SELECT *
+FROM feeds
+WHERE last_fetched_at IS NULL;
+
+-- name: GetFeedsWithOldFetched :many
+SELECT *
+FROM feeds
+WHERE last_fetched_at = (
+    SELECT last_fetched_at
+    FROM feeds
+    ORDER BY last_fetched_at ASC
+    LIMIT 1
+);
