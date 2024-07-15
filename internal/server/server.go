@@ -42,11 +42,18 @@ func StartServer(svrcfg ServerConfig) {
 	mux.HandleFunc("GET /v1/healthz", apicfg.GetHealthz)
 	mux.HandleFunc("GET /v1/err", apicfg.GetErr)
 
+	// Users
 	mux.HandleFunc("POST /v1/users", apicfg.PostUsers)
 	mux.HandleFunc("GET /v1/users", apicfg.MiddlewareAuth(apicfg.GetUserByAPIKey))
 
+	// Feeds
 	mux.HandleFunc("POST /v1/feeds", apicfg.MiddlewareAuth(apicfg.PostFeed))
 	mux.HandleFunc("GET /v1/feeds", apicfg.GetFeeds)
+
+	// Feed follows
+	mux.HandleFunc("GET /v1/feed_follows", apicfg.MiddlewareAuth(apicfg.GetFeedFollows))
+	mux.HandleFunc("POST /v1/feed_follows", apicfg.MiddlewareAuth(apicfg.PostFeedFollow))
+	mux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apicfg.MiddlewareAuth(apicfg.DeleteFeedFollow))
 
 	// Start server
 	server.ListenAndServe()
