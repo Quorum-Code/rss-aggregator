@@ -12,5 +12,5 @@ SELECT *
 FROM feed_follows
 WHERE user_id = $1;
 
--- name: DeleteFeedFollowByFeedID :exec
+-- name: DeleteFeedFollow :exec
 DELETE FROM feed_follows WHERE feed_id = $1 AND user_id = $2;

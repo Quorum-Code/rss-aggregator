@@ -38,5 +38,22 @@ func (cfg *ApiConfig) PostFeedFollow(resp http.ResponseWriter, req *http.Request
 }
 
 func (cfg *ApiConfig) DeleteFeedFollow(resp http.ResponseWriter, req *http.Request, user database.User) {
+	// Get feedFollowID from path
+	fs := req.PathValue("feedFollowID")
+	fid, err := uuid.Parse(fs)
+	if err != nil {
+		respondWithError(resp, http.StatusInternalServerError, err)
+		return
+	}
 
+	err = cfg.DB.DeleteFeedFollow(req.Context(), database.DeleteFeedFollowParams{
+		FeedID: fid,
+		UserID: user.ID,
+	})
+	if err != nil {
+		respondWithError(resp, http.StatusInternalServerError, err)
+		return
+	}
+
+	respondWithJSON(resp, http.StatusOK, nil)
 }
