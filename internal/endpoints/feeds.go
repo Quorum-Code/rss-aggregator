@@ -65,8 +65,14 @@ func (cfg *ApiConfig) PostFeed(resp http.ResponseWriter, req *http.Request, user
 }
 
 func (cfg *ApiConfig) RefreshFetches(resp http.ResponseWriter, req *http.Request) {
+	// Get feeds to refresh
 	feeds := cfg.getNextFeedsToFetch(req)
 
+	// Read/Parse XML from feed
+
+	// Update last_fetched_at and updated_at
+
+	// Respond with feeds
 	respondWithJSON(resp, http.StatusOK, feeds)
 }
 
