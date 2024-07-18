@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"encoding/xml"
 	"fmt"
 	"net/http"
 	"time"
@@ -66,9 +67,40 @@ func (cfg *ApiConfig) PostFeed(resp http.ResponseWriter, req *http.Request, user
 
 func (cfg *ApiConfig) RefreshFetches(resp http.ResponseWriter, req *http.Request) {
 	// Get feeds to refresh
-	feeds := cfg.getNextFeedsToFetch(req)
+	dbfeeds := cfg.getNextFeedsToFetch(req)
+	feeds := DatabaseFeedsToFeeds(dbfeeds)
+
+	// For each
+	fmt.Println("Printing feed text")
+	for i := 0; i < len(feeds); i++ {
+		res, err := http.Get(feeds[i].Url)
+		if err != nil {
+			respondWithError(resp, http.StatusInternalServerError, err)
+			return
+		}
+
+		// Unmarshal
+		rss := database.RSS{}
+		decoder := xml.NewDecoder(res.Body)
+		err = decoder.Decode(&rss)
+		if err != nil {
+			respondWithError(resp, http.StatusInternalServerError, err)
+			return
+		}
+
+		fmt.Println(rss.Channel.Title)
+	}
+	fmt.Println("Done printing feed text")
+
+	// Read XML from url
 
 	// Read/Parse XML from feed
+	// var r database.RSS
+	// err = xml.Unmarshal(nil, &r)
+	// if err != nil {
+	// 	respondWithError(resp, http.StatusInternalServerError, err)
+	// 	return
+	// }
 
 	// Update last_fetched_at and updated_at
 
@@ -84,6 +116,16 @@ type Feed struct {
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 	LastFetchedAt *time.Time `json:"last_fetched_at"`
+}
+
+func DatabaseFeedsToFeeds(dbfeeds []database.Feed) []Feed {
+	feeds := make([]Feed, 0, len(dbfeeds))
+
+	for _, dbf := range dbfeeds {
+		feeds = append(feeds, DatabaseFeedToFeed(dbf))
+	}
+
+	return feeds
 }
 
 func DatabaseFeedToFeed(feed database.Feed) Feed {
