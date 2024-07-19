@@ -5,9 +5,9 @@ CREATE TABLE posts(
     title TEXT NOT NULL,
     url TEXT NOT NULL,
     description TEXT NOT NULL,
-    published_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    published_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT(CURRENT_TIMESTAMP) NOT NULL,
+    updated_at TIMESTAMP DEFAULT(CURRENT_TIMESTAMP) NOT NULL
 );
 
 -- +goose Down
