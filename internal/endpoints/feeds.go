@@ -2,7 +2,9 @@ package endpoints
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -67,11 +69,16 @@ func (cfg *ApiConfig) PostFeed(resp http.ResponseWriter, req *http.Request, user
 
 func (cfg *ApiConfig) RefreshFetches(resp http.ResponseWriter, req *http.Request) {
 	// Get feeds to refresh
-	dbfeeds := cfg.getNextFeedsToFetch(req)
+	dbfeeds, err := cfg.getNextFeedsToFetch(req)
+	if err != nil {
+		respondWithError(resp, http.StatusInternalServerError, err)
+		return
+	}
+
 	feeds := DatabaseFeedsToFeeds(dbfeeds)
 
 	// For each
-	fmt.Println("Printing feed text")
+	fmt.Printf(" * Refreshing Feeds [%d] * \n", len(feeds))
 	for i := 0; i < len(feeds); i++ {
 		res, err := http.Get(feeds[i].Url)
 		if err != nil {
@@ -88,21 +95,15 @@ func (cfg *ApiConfig) RefreshFetches(resp http.ResponseWriter, req *http.Request
 			return
 		}
 
-		fmt.Println(rss.Channel.Title)
+		dbfeed, err := cfg.DB.MarkFeedFetched(req.Context(), feeds[i].ID)
+		if err != nil {
+			respondWithError(resp, http.StatusInternalServerError, err)
+			return
+		}
+		feeds[i] = DatabaseFeedToFeed(dbfeed)
+
+		fmt.Printf(" - %s\n", rss.Channel.Title)
 	}
-	fmt.Println("Done printing feed text")
-
-	// Read XML from url
-
-	// Read/Parse XML from feed
-	// var r database.RSS
-	// err = xml.Unmarshal(nil, &r)
-	// if err != nil {
-	// 	respondWithError(resp, http.StatusInternalServerError, err)
-	// 	return
-	// }
-
-	// Update last_fetched_at and updated_at
 
 	// Respond with feeds
 	respondWithJSON(resp, http.StatusOK, feeds)
@@ -119,6 +120,10 @@ type Feed struct {
 }
 
 func DatabaseFeedsToFeeds(dbfeeds []database.Feed) []Feed {
+	if dbfeeds == nil {
+		return make([]Feed, 0)
+	}
+
 	feeds := make([]Feed, 0, len(dbfeeds))
 
 	for _, dbf := range dbfeeds {
@@ -145,19 +150,22 @@ func DatabaseFeedToFeed(feed database.Feed) Feed {
 	}
 }
 
-func (cfg *ApiConfig) getNextFeedsToFetch(req *http.Request) []database.Feed {
+func (cfg *ApiConfig) getNextFeedsToFetch(req *http.Request) ([]database.Feed, error) {
+	// Get not yet fetched
 	feeds, err := cfg.DB.GetFeedsWithNullFetched(req.Context())
-	if err == nil {
-		return feeds
-	} else {
-		fmt.Println(err.Error())
+	if len(feeds) > 0 {
+		return feeds, nil
+	} else if err != nil {
+		log.Fatal(err)
 	}
 
+	// Get oldest fetched
 	feeds, err = cfg.DB.GetFeedsWithOldFetched(req.Context())
-	if err == nil {
-		return feeds
+	if len(feeds) > 0 {
+		return feeds, nil
+	} else if err != nil {
+		log.Fatal(err)
 	}
 
-	fmt.Println(err.Error())
-	return nil
+	return nil, errors.New("no feeds to fetch")
 }
