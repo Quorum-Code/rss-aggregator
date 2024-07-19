@@ -2,12 +2,12 @@
 CREATE TABLE posts(
     id UUID PRIMARY KEY,
     feed_id UUID REFERENCES feeds(id),
-    title TEXT,
-    url TEXT,
-    description TEXT,
-    published_at TIMESTAMP,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    title TEXT NOT NULL,
+    url TEXT NOT NULL,
+    description TEXT NOT NULL,
+    published_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
 );
 
 -- +goose Down
