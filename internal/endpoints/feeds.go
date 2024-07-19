@@ -95,6 +95,20 @@ func (cfg *ApiConfig) RefreshFetches(resp http.ResponseWriter, req *http.Request
 			return
 		}
 
+		// Store post
+		_, err = cfg.DB.CreatePost(req.Context(), database.CreatePostParams{
+			ID:          uuid.New(),
+			FeedID:      feeds[i].ID,
+			Title:       rss.Channel.Title,
+			Url:         rss.Channel.Link,
+			Description: rss.Channel.Description,
+		})
+		if err != nil {
+			respondWithError(resp, http.StatusInternalServerError, err)
+			return
+		}
+
+		// Mark feed fetched
 		dbfeed, err := cfg.DB.MarkFeedFetched(req.Context(), feeds[i].ID)
 		if err != nil {
 			respondWithError(resp, http.StatusInternalServerError, err)
