@@ -19,7 +19,7 @@ RETURNING id, feed_id, title, url, description, published_at, created_at, update
 
 type CreatePostParams struct {
 	ID          uuid.UUID
-	FeedID      uuid.NullUUID
+	FeedID      uuid.UUID
 	Title       string
 	Url         string
 	Description string

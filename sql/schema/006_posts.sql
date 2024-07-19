@@ -1,7 +1,7 @@
 -- +goose Up
 CREATE TABLE posts(
     id UUID PRIMARY KEY,
-    feed_id UUID REFERENCES feeds(id),
+    feed_id UUID REFERENCES feeds(id) NOT NULL,
     title TEXT NOT NULL,
     url TEXT NOT NULL,
     description TEXT NOT NULL,

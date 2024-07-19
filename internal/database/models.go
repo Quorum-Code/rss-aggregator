@@ -28,7 +28,7 @@ type FeedFollow struct {
 
 type Post struct {
 	ID          uuid.UUID
-	FeedID      uuid.NullUUID
+	FeedID      uuid.UUID
 	Title       string
 	Url         string
 	Description string
